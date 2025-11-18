@@ -12,6 +12,24 @@ app.use(express.json());
 // Register routes
 app.use('/', routes);
 
+// Global error handler
+app.use((err, req, res, next) => {
+    console.error('Unhandled error:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    process.exit(1);
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+    console.error('Uncaught Exception:', err);
+    process.exit(1);
+});
+
 // Start the server
 async function startServer() {
     try {
@@ -19,26 +37,30 @@ async function startServer() {
         await initializeApp();
         
         // Start Express server
-        app.listen(PORT, () => {
+        const server = app.listen(PORT, () => {
             console.log(`Server is running on port ${PORT}`);
             console.log(`Visit http://localhost:${PORT}/stats to view email statistics`);
+            console.log(`Health check endpoint: http://localhost:${PORT}/health`);
+        });
+        
+        // Handle graceful shutdown
+        process.on('SIGINT', () => {
+            console.log('Shutting down gracefully...');
+            // Close MongoDB connection
+            const mongoose = require('mongoose');
+            mongoose.connection.close(() => {
+                console.log('MongoDB connection closed successfully');
+                server.close(() => {
+                    console.log('Server closed successfully');
+                    process.exit(0);
+                });
+            });
         });
     } catch (error) {
         console.error('Failed to start server:', error);
         process.exit(1);
     }
 }
-
-// Handle graceful shutdown
-process.on('SIGINT', () => {
-    console.log('Shutting down gracefully...');
-    // Close MongoDB connection
-    const mongoose = require('mongoose');
-    mongoose.connection.close(() => {
-        console.log('MongoDB connection closed successfully');
-        process.exit(0);
-    });
-});
 
 // Start the application
 startServer();

@@ -1,6 +1,6 @@
 const { initializeDatabase, insertEmails } = require('../database');
 const { processCSV } = require('../csvProcessor');
-const { scheduleEmails, sendEmailBatch } = require('../scheduler');
+const { scheduleEmails } = require('../scheduler');
 
 // Initialize the application
 async function initializeApp() {
@@ -15,12 +15,6 @@ async function initializeApp() {
             // In development mode, only insert the test email
             console.log('DEVELOPMENT MODE: Inserting only test email');
             await insertEmails(['azminsazz@gmail.com']);
-            
-            // In development mode, also trigger an immediate email send for testing
-            console.log('DEVELOPMENT MODE: Triggering immediate email send for testing');
-            setTimeout(() => {
-                sendEmailBatch();
-            }, 5000); // Wait 5 seconds to ensure everything is initialized
         } else {
             // In production mode, process CSV and insert all emails
             const emails = await processCSV();

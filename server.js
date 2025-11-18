@@ -33,6 +33,11 @@ process.on('uncaughtException', (err) => {
 // Start the server
 async function startServer() {
     try {
+        // Log environment for debugging
+        console.log('Environment:', process.env.NODE_ENV || 'development');
+        console.log('IS_DEVELOPMENT:', process.env.IS_DEVELOPMENT);
+        console.log('EMAIL_USER:', process.env.EMAIL_USER ? 'SET' : 'NOT SET');
+        
         // Initialize the application
         await initializeApp();
         
